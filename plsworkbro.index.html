@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The God of Quadrilaterals</title>
+  <style>
+    /* Basic resets and layout */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      overflow-x: hidden;
+      user-select: none;
+      background: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1em;
+      transition: background 0.5s ease;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      padding: 12px 24px;
+      margin: 8px;
+      border-radius: 12px;
+      font-size: 1.1em;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      font-weight: 600;
+      user-select: none;
+    }
+    button:focus {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+    /* Screen containers */
+    #titleScreen, #modeScreen, #gameScreen {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    .hidden {
+      display: none !important;
+    }
+    h1 {
+      font-weight: 900;
+      font-size: 3em;
+      margin-bottom: 0.3em;
+      text-shadow: 0 0 10px #8f6fff;
+    }
+    /* Fade animations */
+    .fade-in {
+      animation: fadeIn 0.6s ease forwards;
+    }
+    .fade-out {
+      animation: fadeOut 0.6s ease forwards;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+    @keyframes fadeOut {
+      from {opacity: 1;}
+      to {opacity: 0;}
+    }
+
+    /* Score displays */
+    #scoreDisplay, #totalScoreDisplay {
+      font-size: 1.3em;
+      margin-bottom: 0.4em;
+      font-weight: 700;
+      text-shadow: 0 0 5px #555;
+    }
+
+    /* Property box */
+    #propertyBox {
+      min-height: 80px;
+      padding: 12px 16px;
+      font-size: 1.2em;
+      font-weight: 600;
+      border-radius: 16px;
+      margin-bottom: 1em;
+      background: rgba(255 255 255 / 0.1);
+      box-shadow: 0 0 10px #777 inset;
+      user-select: text;
+    }
+
+    /* Options container */
+    #options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 1.5em;
+    }
+    .optionBtn {
+      flex: 1 1 40%;
+      min-width: 140px;
+      background: #7a2fff;
+      color: white;
+      box-shadow: 0 0 15px #b58aff;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      font-weight: 700;
+      user-select: none;
+    }
+    .optionBtn:hover, .optionBtn:focus {
+      background: #a267ff;
+      box-shadow: 0 0 20px #d1b3ff;
+    }
+
+    /* Timer bar */
+    #timerBar {
+      width: 100%;
+      height: 20px;
+      background: rgba(255 255 255 / 0.15);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.2em;
+      box-shadow: inset 0 0 6px #444;
+    }
+    #timerProgress {
+      height: 100%;
+      width: 100%;
+      background: #b267ff;
+      transition: width 1s linear;
+      box-shadow: 0 0 12px #d1b3ff inset;
+    }
+
+    /* Result feedback */
+    #result {
+      font-size: 1.6em;
+      font-weight: 700;
+      margin-bottom: 1.2em;
+      min-height: 28px;
+      user-select: none;
+      text-shadow: 0 0 10px #eee;
+    }
+    #result.correct {
+      color: #4caf50;
+      animation: popIn 0.4s ease forwards;
+    }
+    #result.wrong {
+      color: #ff4444;
+      animation: popIn 0.4s ease forwards;
+    }
+    @keyframes popIn {
+      0% {transform: scale(0.6); opacity: 0;}
+      100% {transform: scale(1); opacity: 1;}
+    }
+
+    /* Back button */
+    #backBtn {
+      background: #4a2d6a;
+      color: #e6dfff;
+      box-shadow: 0 0 12px #6f49b3;
+      font-weight: 600;
+    }
+    #backBtn:hover, #backBtn:focus {
+      background: #6f49b3;
+      box-shadow: 0 0 20px #a691f5;
+    }
+
+    /* Mode selection buttons */
+    #modeScreen button {
+      background: #5a2aab;
+      color: white;
+      box-shadow: 0 0 15px #9b74ff;
+      font-weight: 700;
+      width: 140px;
+      user-select: none;
+    }
+    #modeScreen button:hover, #modeScreen button:focus {
+      background: #8e59ff;
+      box-shadow: 0 0 20px #c6aaff;
+    }
+
+    /* Thematic body classes for modes */
+
+    /* Classic: purple */
+    body.classic {
+      background: #220066;
+      background-image: radial-gradient(circle at center, #7a2fff 35%, transparent 70%);
+    }
+    body.classic #propertyBox {
+      background-color: #381a8b;
+      box-shadow: 0 0 12px #a67fff inset;
+    }
+    body.classic #timerProgress {
+      background-color: #a67fff;
+      box-shadow: 0 0 15px #c4aaff inset;
+    }
+    body.classic .optionBtn {
+      background-color: #7a2fff;
+      box-shadow: 0 0 15px #b58aff;
+    }
+    body.classic .optionBtn:hover {
+      background-color: #a267ff;
+      box-shadow: 0 0 20px #d1b3ff;
+    }
+    body.classic #backBtn {
+      background-color: #4a2d6a;
+      box-shadow: 0 0 12px #6f49b3;
+      color: #e6dfff;
+    }
+
+    /* Hard: deep red */
+    body.hard {
+      background: #3a0000;
+      background-image: radial-gradient(circle at center, #c43a3a 40%, transparent 75%);
+    }
+    body.hard #propertyBox {
+      background-color: #a53030;
+      box-shadow: 0 0 15px #e06f6f inset;
+    }
+    body.hard #timerProgress {
+      background-color: #e06f6f;
+      box-shadow: 0 0 15px #f4a2a2 inset;
+    }
+    body.hard .optionBtn {
+      background-color: #c43a3a;
+      box-shadow: 0 0 15px #ef7d7d;
+    }
+    body.hard .optionBtn:hover {
+      background-color: #f04f4f;
+      box-shadow: 0 0 20px #f8a1a1;
+    }
+    body.hard #backBtn {
+      background-color: #7a1c1c;
+      color: #ffcfcf;
+      box-shadow: 0 0 15px #b45c5c;
+    }
+
+    /* Reverse: teal */
+    body.reverse {
+      background: #003a3a;
+      background-image: radial-gradient(circle at center, #3ab5b5 35%, transparent 70%);
+    }
+    body.reverse #propertyBox {
+      background-color: #216767;
+      box-shadow: 0 0 15px #66d6d6 inset;
+    }
+    body.reverse #timerProgress {
+      background-color: #66d6d6;
+      box-shadow: 0 0 15px #9effff inset;
+    }
+    body.reverse .optionBtn {
+      background-color: #3ab5b5;
+      box-shadow: 0 0 15px #88e1e1;
+    }
+    body.reverse .optionBtn:hover {
+      background-color: #5de4e4;
+      box-shadow: 0 0 20px #c5ffff;
+    }
+    body.reverse #backBtn {
+      background-color: #215353;
+      color: #d9ffff;
+      box-shadow: 0 0 15px #5cc7c7;
+    }
+
+    /* Speed: golden yellow */
+    body.speed {
+      background: #664d00;
+      background-image: radial-gradient(circle at center, #ffd633 40%, transparent 75%);
+      color: #3d3000;
+    }
+    body.speed #propertyBox {
+      background-color: #ffea66;
+      box-shadow: 0 0 15px #fff29f inset;
+      color: #332e00;
+    }
+    body.speed #timerProgress {
+      background-color: #ffc300;
+      box-shadow: 0 0 15px #ffd94d inset;
+    }
+    body.speed .optionBtn {
+      background-color: #b38600;
+      box-shadow: 0 0 15px #ffe066;
+      color: #3d3000;
+    }
+    body.speed .optionBtn:hover {
+      background-color: #ffea00;
+      box-shadow: 0 0 20px #fff966;
+      color: #3d3000;
+    }
+    body.speed #backBtn {
+      background-color: #664d00;
+      box-shadow: 0 0 15px #ffe066;
+      color: #3d3000;
+    }
+
+    /* Elimination: dark red & black */
+    body.elimination {
+      background: #1a0000;
+      background-image: radial-gradient(circle at center, #4b0000 40%, transparent 70%);
+      color: #ffb3b3;
+    }
+    body.elimination #propertyBox {
+      background-color: #660000;
+      box-shadow: 0 0 15px #cc0000 inset;
+    }
+    body.elimination #timerProgress {
+      background-color: #cc0000;
+      box-shadow: 0 0 15px #ff4444 inset;
+    }
+    body.elimination .optionBtn {
+      background-color: #800000;
+      box-shadow: 0 0 15px #ff0000;
+      color: #fff2f2;
+    }
+    body.elimination .optionBtn:hover {
+      background-color: #cc0000;
+      box-shadow: 0 0 20px #ff4444;
+      color: #fff2f2;
+    }
+    body.elimination #backBtn {
+      background-color: #660000;
+      box-shadow: 0 0 15px #cc0000;
+      color: #ffb3b3;
+    }
+
+    /* Endless: midnight blue and violet */
+    body.endless {
+      background: #07003a;
+      background-image: radial-gradient(circle at center, #4b0082 35%, transparent 75%);
+    }
+    body.endless #propertyBox {
+      background-color: #3c0075;
+      box-shadow: 0 0 15px #a366ff inset;
+    }
+    body.endless #timerProgress {
+      background-color: #a366ff;
+      box-shadow: 0 0 15px #cdb3ff inset;
+    }
+    body.endless .optionBtn {
+      background-color: #4b0082;
+      box-shadow: 0 0 15px #8666ffbb;
+    }
+    body.endless .optionBtn:hover {
+      background-color: #7f4dff;
+      box-shadow: 0 0 20px #cdb3ffcc;
+    }
+    body.endless #backBtn {
+      background-color: #35007f;
+      box-shadow: 0 0 15px #b399ff;
+      color: #d9ccff;
+    }
+  </style>
+</head>
+<body>
+  <div id="titleScreen" class="fade-in">
+    <h1>The God of Quadrilaterals</h1>
+    <button id="startBtn" aria-label="Start Game">Start Game</button>
+  </div>
+
+  <div id="modeScreen" class="hidden" role="region" aria-label="Game Mode Selection">
+    <button data-mode="classic" aria-label="Classic Mode">Classic</button>
+    <button data-mode="hard" aria-label="Hard Mode">Hard</button>
+    <button data-mode="reverse" aria-label="Reverse Mode">Reverse</button>
+    <button data-mode="speed" aria-label="Speed Mode">Speed</button>
+    <button data-mode="elimination" aria-label="Elimination Mode">Elimination</button>
+    <button data-mode="endless" aria-label="Endless Mode">Endless</button>
+  </div>
+
+  <div id="gameScreen" class="hidden" role="main" aria-live="polite">
+    <div id="scoreDisplay" aria-live="polite">⭐ Score: 0</div>
+    <div id="totalScoreDisplay" aria-live="polite">🏆 Total Score: 0</div>
+    <div id="propertyBox" aria-live="polite"></div>
+    <div id="options" role="list"></div>
+    <div id="timerBar" aria-label="Timer progress bar">
+      <div id="timerProgress"></div>
+    </div>
+    <div id="result" aria-live="assertive"></div>
+    <button id="backBtn" aria-label="Back to Mode Selection">Back to Modes</button>
+  </div>
+
+  <script>
+    window.onload = () => {
+      const titleScreen = document.getElementById('titleScreen');
+      const startBtn = document.getElementById('startBtn');
+      const modeScreen = document.getElementById('modeScreen');
+      const gameScreen = document.getElementById('gameScreen');
+      const scoreDisplay = document.getElementById('scoreDisplay');
+      const totalScoreDisplay = document.getElementById('totalScoreDisplay');
+      const propertyBox = document.getElementById('propertyBox');
+      const optionsContainer = document.getElementById('options');
+      const timerProgress = document.getElementById('timerProgress');
+      const result = document.getElementById('result');
+      const backBtn = document.getElementById('backBtn');
+
+      let gameMode = '';
+      let score = 0;
+      let totalScore = 0;
+      let currentQuestion = null;
+      let questions = [];
+      let gameActive = false;
+      let timer;
+      let timeLeft;
+
+      // Question sets
+      const quadsClassic = [
+        {name: 'Square', props: 'Four equal sides and four right angles.'},
+        {name: 'Rectangle', props: 'Opposite sides equal and four right angles.'},
+        {name: 'Rhombus', props: 'Four equal sides with opposite equal angles.'},
+        {name: 'Parallelogram', props: 'Opposite sides parallel and equal.'},
+        {name: 'Trapezoid', props: 'At least one pair of parallel sides.'},
+        {name: 'Kite', props: 'Two pairs of adjacent equal sides.'},
+      ];
+      const quadsHard = [
+        {name: 'Isosceles Trapezoid', props: 'A trapezoid with non-parallel sides equal.'},
+        {name: 'Right Kite', props: 'A kite with one right angle.'},
+        {name: 'Deltoid', props: 'Another name for kite with specific angle conditions.'},
+        {name: 'Cyclic Quadrilateral', props: 'Vertices lie on a common circle.'},
+        {name: 'Tangential Quadrilateral', props: 'Has an inscribed circle.'},
+        {name: 'Orthodiagonal Quadrilateral', props: 'Diagonals are perpendicular.'},
+      ];
+      // Mix others as subsets for other modes, or just reuse classic
+      const allQuestions = quadsClassic.concat(quadsHard);
+
+      // Mode configs
+      const modeConfigs = {
+        classic: {time: 15, scorePerCorrect: 10},
+        hard: {time: 12, scorePerCorrect: 20},
+        reverse: {time: 15, scorePerCorrect: 10},
+        speed: {time: 8, scorePerCorrect: 10},
+        elimination: {time: 15, scorePerCorrect: 10},
+        endless: {time: 15, scorePerCorrect: 10},
+      };
+
+      // Set body class by mode
+      function applyModeTheme(mode) {
+        document.body.className = ''; // reset
+        if (modeConfigs[mode]) {
+          document.body.classList.add(mode);
+        }
+      }
+
+      // Show and hide screens with fade animations
+      function showScreen(show, hide) {
+        hide.classList.add('fade-out');
+        setTimeout(() => {
+          hide.classList.add('hidden');
+          hide.classList.remove('fade-out');
+          show.classList.remove('hidden');
+          show.classList.add('fade-in');
+          setTimeout(() => {
+            show.classList.remove('fade-in');
+          }, 600);
+        }, 400);
+      }
+
+      // Pick random question from list, avoiding repeats
+      function pickQuestion() {
+        if (questions.length === 0) {
+          return null;
+        }
+        const index = Math.floor(Math.random() * questions.length);
+        const q = questions.splice(index, 1)[0];
+        return q;
+      }
+
+      // Render current question
+      function renderQuestion() {
+        if (!currentQuestion) {
+          propertyBox.textContent = 'No questions left!';
+          optionsContainer.innerHTML = '';
+          endGame(true);
+          return;
+        }
+        propertyBox.textContent = currentQuestion.props;
+
+        // Options - always include correct + 3 random distractors
+        const optionsSet = new Set();
+        optionsSet.add(currentQuestion.name);
+
+        // Collect distractors from allQuestions but exclude current answer
+        while (optionsSet.size < 4) {
+          let candidate = allQuestions[Math.floor(Math.random() * allQuestions.length)].name;
+          if (candidate !== currentQuestion.name) optionsSet.add(candidate);
+        }
+        const optionsArr = Array.from(optionsSet);
+        shuffleArray(optionsArr);
+
+        optionsContainer.innerHTML = '';
+        optionsArr.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.textContent = opt;
+          btn.classList.add('optionBtn');
+          btn.setAttribute('role', 'listitem');
+          btn.setAttribute('aria-label', `Answer option: ${opt}`);
+          btn.onclick = () => {
+            if (!gameActive) return;
+            checkAnswer(opt);
+          };
+          optionsContainer.appendChild(btn);
+        });
+      }
+
+      // Shuffle helper
+      function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
+
+      // Timer related
+      function startTimer() {
+        clearInterval(timer);
+        timeLeft = modeConfigs[gameMode].time;
+        timerProgress.style.width = '100%';
+        let intervalMs = 100; // smooth animation
+
+        const start = Date.now();
+
+        timer = setInterval(() => {
+          let elapsed = (Date.now() - start) / 1000;
+          let percent = Math.max(0, 1 - elapsed / modeConfigs[gameMode].time);
+          timerProgress.style.width = (percent * 100) + '%';
+
+          if (elapsed >= modeConfigs[gameMode].time) {
+            clearInterval(timer);
+            handleTimeout();
+          }
+        }, intervalMs);
+      }
+
+      // Handle timeout differently per mode
+      function handleTimeout() {
+        if (!gameActive) return;
+        if (gameMode === 'elimination') {
+          // Lose immediately
+          showResult(false);
+          endGame(false);
+        } else if (gameMode === 'reverse') {
+          // In reverse mode, time out means auto correct and score gain!
+          showResult(true);
+          score += modeConfigs[gameMode].scorePerCorrect;
+          updateScore();
+          nextQuestion();
+        } else if (gameMode === 'endless') {
+          // Just go to next question, no penalty
+          nextQuestion();
+        } else {
+          // For other modes, count as wrong
+          showResult(false);
+          nextQuestion();
+        }
+      }
+
+      // Check answer correctness
+      function checkAnswer(selected) {
+        if (!gameActive) return;
+        gameActive = false;
+        clearInterval(timer);
+
+        let correct = false;
+        if (gameMode === 'reverse') {
+          // In reverse mode, correct answer is wrong option selected (to challenge)
+          correct = selected !== currentQuestion.name;
+        } else {
+          correct = selected === currentQuestion.name;
+        }
+
+        showResult(correct);
+
+        if (correct) {
+          score += modeConfigs[gameMode].scorePerCorrect;
+          updateScore();
+          setTimeout(() => {
+            nextQuestion();
+          }, 1200);
+        } else {
+          if (gameMode === 'elimination') {
+            setTimeout(() => {
+              endGame(false);
+            }, 1200);
+          } else {
+            setTimeout(() => {
+              nextQuestion();
+            }, 1200);
+          }
+        }
+      }
+
+      function showResult(correct) {
+        if (correct) {
+          result.textContent = '✅ Correct!';
+          result.classList.add('correct');
+          result.classList.remove('wrong');
+        } else {
+          result.textContent = '❌ Wrong!';
+          result.classList.add('wrong');
+          result.classList.remove('correct');
+        }
+      }
+      function hideResult() {
+        result.textContent = '';
+        result.classList.remove('correct', 'wrong');
+      }
+
+      // Update score displays
+      function updateScore() {
+        scoreDisplay.textContent = `⭐ Score: ${score}`;
+        totalScoreDisplay.textContent = `🏆 Total Score: ${totalScore + score}`;
+      }
+
+      // Load questions for mode
+      function loadQuestionsForMode(mode) {
+        switch(mode) {
+          case 'classic': questions = quadsClassic.slice(); break;
+          case 'hard': questions = quadsHard.slice(); break;
+          case 'reverse': questions = quadsClassic.slice(); break;
+          case 'speed': questions = quadsClassic.slice(); break;
+          case 'elimination': questions = quadsClassic.slice(); break;
+          case 'endless': questions = allQuestions.slice(); break;
+          default: questions = quadsClassic.slice();
+        }
+        shuffleArray(questions);
+      }
+
+      // Next question
+      function nextQuestion() {
+        hideResult();
+        currentQuestion = pickQuestion();
+        if (!currentQuestion && gameMode !== 'endless') {
+          // No more questions = game won
+          endGame(true);
+          return;
+        } else if (!currentQuestion && gameMode === 'endless') {
+          // Endless mode always reload question pool
+          loadQuestionsForMode(gameMode);
+          currentQuestion = pickQuestion();
+        }
+        renderQuestion();
+        gameActive = true;
+        startTimer();
+      }
+
+      // End game
+      function endGame(win) {
+        gameActive = false;
+        clearInterval(timer);
+        if (win) {
+          propertyBox.textContent = '🎉 You completed the game!';
+          totalScore += score;
+        } else {
+          propertyBox.textContent = '💥 Game Over!';
+        }
+        optionsContainer.innerHTML = '';
+        timerProgress.style.width = '0%';
+        if (win) {
+          result.textContent = '';
+          result.classList.remove('correct', 'wrong');
+        } else {
+          result.textContent = 'Try again!';
+          result.classList.add('wrong');
+        }
+        updateScore();
+      }
+
+      // Reset game
+      function resetGame() {
+        score = 0;
+        currentQuestion = null;
+        questions = [];
+        gameActive = false;
+        clearInterval(timer);
+        propertyBox.textContent = '';
+        optionsContainer.innerHTML = '';
+        result.textContent = '';
+        timerProgress.style.width = '0%';
+        updateScore();
+      }
+
+      // Start Game button handler
+      startBtn.onclick = () => {
+        showScreen(modeScreen, titleScreen);
+      };
+
+      // Mode buttons handlers
+      modeScreen.querySelectorAll('button').forEach(btn => {
+        btn.onclick = () => {
+          gameMode = btn.getAttribute('data-mode');
+          resetGame();
+          applyModeTheme(gameMode);
+          loadQuestionsForMode(gameMode);
+          updateScore();
+          showScreen(gameScreen, modeScreen);
+          nextQuestion();
+        };
+      });
+
+      // Back to mode select
+      backBtn.onclick = () => {
+        clearInterval(timer);
+        resetGame();
+        showScreen(modeScreen, gameScreen);
+      };
+    };
+  </script>
+</body>
+</html>
